@@ -1,0 +1,441 @@
+library(ISLR)
+
+?Weekly
+fix(Weekly)
+names(Weekly)
+attach(Weekly)
+
+################10a########################
+dim(Weekly)
+summary(Weekly)
+
+print(xtable(summary(Weekly)), type="latex")
+
+#correlation matrix
+correl <-round(cor(Weekly[ ,-9]),3)
+
+#Hide lower triangle of correlation matrix
+lower<-correl
+lower[lower.tri(correl, diag=TRUE)]<-""
+lower<-as.data.frame(lower)
+lower
+#print correlation matrix in latex form
+print(xtable(lower), type="latex")
+
+plot(Volume)
+
+####################10b###############################
+
+glm.fits = glm(Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume, data = Weekly,
+               family = binomial)
+summary(glm.fits)
+
+#######################10c######################3
+
+glm.probs = predict(glm.fits, type = "response")
+glm.pred = rep("Down", 1089)
+glm.pred[glm.probs > .5] = "Up"
+table(glm.pred, Direction)
+sprintf("Overall fraction correct= %10.6f", mean(glm.pred == Direction))
+
+###################10d###########################
+
+train = (Year < 2009)
+Weekly.2009.2010 = Weekly[!train,]
+Direction.2009.2010 = Direction[!train]
+
+glm.fits1 = glm(Direction ~ Lag2, data = Weekly, family = binomial, subset = train)
+glm.probs1 = predict(glm.fits1, Weekly.2009.2010, type = "response")
+glm.pred1 = rep("Down", length(Direction.2009.2010))
+glm.pred1[glm.probs1 > .5] = "Up"
+table(glm.pred1, Direction.2009.2010)
+sprintf("Overall fraction correct = %10.6f", mean(glm.pred1 == Direction.2009.2010))
+
+##################10e##############################
+library(MASS)
+
+lda.fit = lda(Direction ~ Lag2, data = Weekly, subset = train)
+lda.pred = predict(lda.fit, Weekly.2009.2010)
+lda.class = lda.pred$class
+table(lda.class, Direction.2009.2010)
+sprintf("Overall fraction correct = %10.6f", mean(lda.class == Direction.2009.2010))
+
+##################10f##############################
+
+qda.fit = qda(Direction ~ Lag2, data = Weekly, subset = train)
+qda.class = predict(qda.fit, Weekly.2009.2010)$class
+table(qda.class, Direction.2009.2010)
+sprintf("Overall fraction correct = %10.6f", mean(qda.class == Direction.2009.2010))
+
+###################10g######################
+library(class)
+train.X = as.matrix(Lag2[train]) 
+test.X = as.matrix(Lag2[!train]) 
+train.Direction = Direction[train]
+
+set.seed(1)
+knn.pred = knn(train.X, test.X, train.Direction, k=1)
+
+table(knn.pred, Direction.2009.2010)
+sprintf("Overall fraction correct = %10.6f", mean(knn.pred == Direction.2009.2010))
+
+knn_pred = NULL
+results <- data.frame(k=1:dim(test.X), acc=NA)
+for(i in 1:dim(test.X)){
+  set.seed(1)
+  knn.pred = knn(data.frame(train.X), data.frame(test.X), train.Direction, k=i)
+  results$acc[i] = mean(knn.pred == Direction.2009.2010)
+}
+plot(x=results$k, y=results$acc, type="l", xlab="K", ylab="Accuracy")
+
+### find the maximum accuracy
+max.accuracy = max(results$acc)
+print(max.accuracy, digits = 3)
+
+### get the index of that accuracy, which is the k
+K = which(results$acc == max.accuracy)
+print(K)
+
+##########################10i###########################
+
+#a_glm
+glm.fits2 = glm(Direction ~ Lag1 + Lag2, data = Weekly, family = binomial, subset = train)
+summary(glm.fits2)
+glm.probs2 = predict(glm.fits2, Weekly.2009.2010, type = "response")
+glm.pred2 = rep("Down", 104)
+glm.pred2[glm.probs2 > .5] = "Up"
+table(glm.pred2, Direction.2009.2010)
+acc_glm = NULL
+acc_glm[1] = mean(glm.pred1 == Direction.2009.2010)
+
+
+#b_glm
+glm.fits3 = glm(Direction ~ Lag1 + Lag2 + Lag3, data = Weekly, family = binomial, subset = train)
+summary(glm.fits3)
+glm.probs3 = predict(glm.fits3, Weekly.2009.2010, type = "response")
+glm.pred3 = rep("Down", 104)
+glm.pred3[glm.probs3 > .5] = "Up"
+table(glm.pred3, Direction.2009.2010)
+acc_glm[2] = mean(glm.pred3 == Direction.2009.2010)
+
+
+#c_glm
+glm.fits4 = glm(Direction ~ Lag1 + Lag2 + Volume, data = Weekly, family = binomial, subset = train)
+summary(glm.fits4)
+glm.probs4 = predict(glm.fits4, Weekly.2009.2010, type = "response")
+glm.pred4 = rep("Down", 104)
+glm.pred4[glm.probs4 > .5] = "Up"
+table(glm.pred4, Direction.2009.2010)
+acc_glm[3] = mean(glm.pred4 == Direction.2009.2010)
+
+#d_glm
+glm.fits5 = glm(Direction ~ Lag1 * Lag2, data = Weekly, family = binomial, subset = train)
+summary(glm.fits5)
+glm.probs5 = predict(glm.fits5, Weekly.2009.2010, type = "response")
+glm.pred5 = rep("Down", 104)
+glm.pred5[glm.probs5 > .5] = "Up"
+table(glm.pred5, Direction.2009.2010)
+acc_glm[4] = mean(glm.pred5 == Direction.2009.2010)
+
+#e_glm
+glm.fits6 = glm(Direction ~ poly(Lag2,2), data = Weekly, family = binomial, subset = train)
+summary(glm.fits6)
+glm.probs6 = predict(glm.fits6, Weekly.2009.2010, type = "response")
+glm.pred6 = rep("Down", 104)
+glm.pred6[glm.probs6 > .5] = "Up"
+table(glm.pred6, Direction.2009.2010)
+acc_glm[5] = mean(glm.pred6 == Direction.2009.2010)
+
+#f_lgm
+glm.fits7 = glm(Direction ~ poly(Lag2,4), data = Weekly, family = binomial, subset = train)
+summary(glm.fits7)
+glm.probs7 = predict(glm.fits7, Weekly.2009.2010, type = "response")
+glm.pred7 = rep("Down", 104)
+glm.pred7[glm.probs7 > .5] = "Up"
+table(glm.pred7, Direction.2009.2010)
+acc_glm[6] = mean(glm.pred7 == Direction.2009.2010)
+
+#g_lgm
+glm.fits8 = glm(Direction ~ Lag2 + sqrt(abs(Lag2)), data = Weekly, family = binomial, subset = train)
+summary(glm.fits8)
+glm.probs8 = predict(glm.fits8, Weekly.2009.2010, type = "response")
+glm.pred8 = rep("Down", 104)
+glm.pred8[glm.probs8 > .5] = "Up"
+table(glm.pred8, Direction.2009.2010)
+acc_glm[7] = mean(glm.pred7 == Direction.2009.2010)
+
+print(acc_glm, digits = 3)
+
+#a_lda
+lda.fit = lda(Direction ~ Lag1 + Lag2, data = Weekly, subset = train)
+lda.pred = predict(lda.fit, Weekly.2009.2010)
+lda.class = lda.pred$class
+table(lda.class, Direction.2009.2010)
+acc_lda = NULL
+acc_lda[1] = mean(lda.class == Direction.2009.2010)
+
+#b_lda
+lda.fit = lda(Direction ~ Lag1 + Lag2 + Lag3, data = Weekly, subset = train)
+lda.pred = predict(lda.fit, Weekly.2009.2010)
+lda.class = lda.pred$class
+table(lda.class, Direction.2009.2010)
+acc_lda[2] = mean(lda.class == Direction.2009.2010)
+
+#c_lda
+lda.fit = lda(Direction ~ Lag1 + Lag2 + Volume, data = Weekly, subset = train)
+lda.pred = predict(lda.fit, Weekly.2009.2010)
+lda.class = lda.pred$class
+table(lda.class, Direction.2009.2010)
+acc_lda[3] = mean(lda.class == Direction.2009.2010)
+
+#d_lda
+lda.fit = lda(Direction ~ Lag1 * Lag2, data = Weekly, subset = train)
+lda.pred = predict(lda.fit, Weekly.2009.2010)
+lda.class = lda.pred$class
+table(lda.class, Direction.2009.2010)
+acc_lda[4] = mean(lda.class == Direction.2009.2010)
+
+#e_lda
+lda.fit = lda(Direction ~ poly(Lag2,2), data = Weekly, subset = train)
+lda.pred = predict(lda.fit, Weekly.2009.2010)
+lda.class = lda.pred$class
+table(lda.class, Direction.2009.2010)
+acc_lda[5] = mean(lda.class == Direction.2009.2010)
+
+#f_lda
+lda.fit = lda(Direction ~ poly(Lag2,4), data = Weekly, subset = train)
+lda.pred = predict(lda.fit, Weekly.2009.2010)
+lda.class = lda.pred$class
+table(lda.class, Direction.2009.2010)
+acc_lda[6] = mean(lda.class == Direction.2009.2010)
+
+#g_lda
+lda.fit = lda(Direction ~ Lag2 + sqrt(abs(Lag2)), data = Weekly, subset = train)
+lda.pred = predict(lda.fit, Weekly.2009.2010)
+lda.class = lda.pred$class
+table(lda.class, Direction.2009.2010)
+acc_lda[7] = mean(lda.class == Direction.2009.2010)
+
+print(acc_lda, digits = 3)
+
+#a_qda
+qda.fit = qda(Direction ~ Lag1 + Lag2, data = Weekly, subset = train)
+qda.class = predict(qda.fit, Weekly.2009.2010)$class
+table(qda.class, Direction.2009.2010)
+acc_qda = NULL
+acc_qda[1] = mean(qda.class == Direction.2009.2010)
+
+#b_qda
+qda.fit = qda(Direction ~ Lag1 + Lag2 +  Lag3, data = Weekly, subset = train)
+qda.class = predict(qda.fit, Weekly.2009.2010)$class
+table(qda.class, Direction.2009.2010)
+acc_qda[2] = mean(qda.class == Direction.2009.2010)
+
+
+#c_qda
+qda.fit = qda(Direction ~ Lag1 + Lag2 + Volume, data = Weekly, subset = train)
+qda.class = predict(qda.fit, Weekly.2009.2010)$class
+table(qda.class, Direction.2009.2010)
+acc_qda[3] = mean(qda.class == Direction.2009.2010)
+
+#d_qda
+qda.fit = qda(Direction ~ Lag1 * Lag2, data = Weekly, subset = train)
+qda.class = predict(qda.fit, Weekly.2009.2010)$class
+table(qda.class, Direction.2009.2010)
+acc_qda[4] = mean(qda.class == Direction.2009.2010)
+
+#e_qda
+qda.fit = qda(Direction ~ poly(Lag2, 2), data = Weekly, subset = train)
+qda.class = predict(qda.fit, Weekly.2009.2010)$class
+table(qda.class, Direction.2009.2010)
+acc_qda[5] = mean(qda.class == Direction.2009.2010)
+
+#f_qda
+qda.fit = qda(Direction ~ poly(Lag2, 4), data = Weekly, subset = train)
+qda.class = predict(qda.fit, Weekly.2009.2010)$class
+table(qda.class, Direction.2009.2010)
+acc_qda[6] = mean(qda.class == Direction.2009.2010)
+
+#g_qda
+qda.fit = qda(Direction ~ Lag2 + sqrt(abs(Lag2)), data = Weekly, subset = train)
+qda.class = predict(qda.fit, Weekly.2009.2010)$class
+table(qda.class, Direction.2009.2010)
+acc_qda[7] = mean(qda.class == Direction.2009.2010)
+
+print(acc_qda, digits = 3)
+
+#a_knn
+train.X = cbind(Lag1, Lag2)[train,]
+test.X = cbind(Lag1, Lag2)[!train,]
+train.Direction = Direction[train]
+
+knn_pred = NULL
+results = data.frame(k=1:dim(test.X)[1], acc=NA)
+for(i in 1:dim(test.X)[1]){
+  set.seed(1)
+  knn.pred = knn(data.frame(train.X), data.frame(test.X), train.Direction, k=i)
+  results$acc[i] = mean(knn.pred == Direction.2009.2010)
+}
+plot(x=results$k, y=results$acc, type="l", xlab="K", ylab="Accuracy")
+
+max.accuracy = NULL
+K =NULL
+### find the maximum accuracy
+max.accuracy[1] = max(results$acc)
+print(max.accuracy[1])
+
+### get the index of that accuracy, which is the k
+K[1] = which(results$acc == max.accuracy[1])
+print(K[1])
+
+
+#b_knn
+train.X = cbind(Lag1, Lag2, Lag3)[train,]
+test.X = cbind(Lag1, Lag2, Lag3)[!train,]
+train.Direction = Direction[train]
+
+knn_pred = NULL
+results <- data.frame(k=1:dim(test.X), acc=NA)
+for(i in 1:dim(test.X)){
+  set.seed(1)
+  knn.pred = knn(data.frame(train.X), data.frame(test.X), train.Direction, k=i)
+  results$acc[i] = mean(knn.pred == Direction.2009.2010)
+}
+plot(x=results$k, y=results$acc, type="l", xlab="K", ylab="Accuracy")
+
+### find the maximum accuracy
+max.accuracy[2] = max(results$acc)
+print(max.accuracy[2])
+
+### get the index of that accuracy, which is the k
+K[2] = which(results$acc == max.accuracy[2])
+print(K[2])
+
+
+#c_knn
+train.X = cbind(Lag1, Lag2, Volume)[train,]
+test.X = cbind(Lag1, Lag2, Volume)[!train,]
+train.Direction = Direction[train]
+
+knn_pred = NULL
+results <- data.frame(k=1:dim(test.X)[1], acc=NA)
+for(i in 1:dim(test.X)[1]){
+  set.seed(1)
+  knn.pred = knn(data.frame(train.X), data.frame(test.X), train.Direction, k=i)
+  results$acc[i] = mean(knn.pred == Direction.2009.2010)
+}
+plot(x=results$k, y=results$acc, type="l", xlab="K", ylab="Accuracy")
+
+### find the maximum accuracy
+max.accuracy[3] = max(results$acc)
+print(max.accuracy[3])
+
+### get the index of that accuracy, which is the k
+K[3] = which(results$acc == max.accuracy[3])
+print(K[3])
+
+
+#d_knn
+
+train.X = cbind(Lag1, Lag2, Lag1*Lag2)[train,]
+test.X = cbind(Lag1, Lag2, Lag1*Lag2)[!train,]
+train.Direction = Direction[train]
+
+knn_pred = NULL
+results <- data.frame(k=1:dim(test.X), acc=NA)
+for(i in 1:dim(test.X)){
+  set.seed(1)
+  knn.pred = knn(data.frame(train.X), data.frame(test.X), train.Direction, k=i)
+  results$acc[i] = mean(knn.pred == Direction.2009.2010)
+}
+plot(x=results$k, y=results$acc, type="l", xlab="K", ylab="Accuracy")
+
+### find the maximum accuracy
+max.accuracy[4] = max(results$acc)
+print(max.accuracy[4])
+
+### get the index of that accuracy, which is the k
+K[4] = which(results$acc == max.accuracy[4])
+print(K[4])
+
+
+#e_knn
+
+train.X = cbind(Lag2, I(Lag2^2))[train,]
+test.X = cbind(Lag2, I(Lag2^2))[!train,]
+train.Direction = Direction[train]
+
+knn_pred = NULL
+results <- data.frame(k=1:dim(test.X), acc=NA)
+for(i in 1:dim(test.X)){
+  set.seed(1)
+  knn.pred = knn(data.frame(train.X), data.frame(test.X), train.Direction, k=i)
+  results$acc[i] = mean(knn.pred == Direction.2009.2010)
+}
+plot(x=results$k, y=results$acc, type="l", xlab="K", ylab="Accuracy")
+
+### find the maximum accuracy
+max.accuracy[5] = max(results$acc)
+print(max.accuracy[5])
+
+### get the index of that accuracy, which is the k
+K[5] = which(results$acc == max.accuracy[5])
+print(K[5])
+
+
+#f_knn
+
+train.X = cbind(Lag2, I(Lag2^2), I(Lag2^3), I(Lag2^4))[train,]
+test.X = cbind(Lag2, I(Lag2^2), I(Lag2^3), I(Lag2^4))[!train,]
+train.Direction = Direction[train]
+
+knn_pred = NULL
+results <- data.frame(k=1:dim(test.X), acc=NA)
+for(i in 1:dim(test.X)){
+  set.seed(1)
+  knn.pred = knn(data.frame(train.X), data.frame(test.X), train.Direction, k=i)
+  results$acc[i] = mean(knn.pred == Direction.2009.2010)
+}
+plot(x=results$k, y=results$acc, type="l", xlab="K", ylab="Accuracy")
+
+### find the maximum accuracy
+max.accuracy[6] = max(results$acc)
+print(max.accuracy[6])
+
+### get the index of that accuracy, which is the k
+K[6] = which(results$acc == max.accuracy[6])
+print(K[6])
+
+
+#g_knn
+
+train.X = cbind(Lag2, sqrt(abs(Lag2)))[train,]
+test.X = cbind(Lag2, sqrt(abs(Lag2)))[!train,]
+train.Direction = Direction[train]
+
+knn_pred = NULL
+results <- data.frame(k=1:dim(test.X), acc=NA)
+for(i in 1:dim(test.X)){
+  set.seed(1)
+  knn.pred = knn(data.frame(train.X), data.frame(test.X), train.Direction, k=i)
+  results$acc[i] = mean(knn.pred == Direction.2009.2010)
+}
+plot(x=results$k, y=results$acc, type="l", xlab="K", ylab="Accuracy")
+
+### find the maximum accuracy
+max.accuracy[7] = max(results$acc)
+print(max.accuracy[7])
+
+### get the index of that accuracy, which is the k
+K[7] = which(results$acc == max.accuracy[7])
+print(K[7])
+
+print(max.accuracy, digits = 3)
+print(K)
+
+acc_table = data.frame(acc_glm,acc_lda, acc_qda, max.accuracy, K)
+colnames(acc_table) = c("acc_glm", "acc_lda", "acc_qda", "acc_knn", "K")
+rownames(acc_table) = c("a.", "b." , "c.", "d.", "e.", "f.", "g.")
+acc_table
+print(acc_table, digits = 3)
+print(xtable(acc_table, digits = 3), type="latex")
