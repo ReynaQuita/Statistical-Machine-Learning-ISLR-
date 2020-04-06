@@ -1,0 +1,165 @@
+library(ISLR)
+library(MASS)
+?Boston
+attach(Boston)
+
+
+crime = rep("Below", length(crim))
+crime[crim > median(crim)] = "Above"
+Boston = data.frame(Boston, crime)
+
+train = 1:(dim(Boston)[1]*(0.75))
+test = (dim(Boston)[1]*(0.75) + 1):dim(Boston)[1]
+
+train.X = Boston[train,]
+test.X = Boston[test,]
+train.Y = crime[train]
+test.Y = crime[test]
+
+#glm all predictors
+glm.fits = glm(crime ~. -crim - crime, data = Boston, family = binomial, subset = train)
+summary(glm.fits)
+
+glm.probs = predict(glm.fits, test.X, type = "response")
+glm.pred = rep("Below", dim(test.X)[1])
+glm.pred[glm.probs > .5] = "Above"
+table(glm.pred, test.Y)
+acc_glm = NULL
+acc_glm[1] = mean(glm.pred == test.Y)
+
+#glm predictors are nox, rad, ptratio, dis, medv
+glm.fits = glm(crime ~ nox + rad + ptratio + dis + medv, data = Boston, 
+               family = binomial, subset = train)
+summary(glm.fits)
+
+glm.probs = predict(glm.fits, test.X, type = "response")
+glm.pred = rep("Below", dim(test.X)[1])
+glm.pred[glm.probs > .5] = "Above"
+table(glm.pred, test.Y)
+acc_glm[2] = mean(glm.pred == test.Y)
+
+
+#glm predictors are nox, rad, ptratio
+glm.fits = glm(crime ~ nox + rad + ptratio, data = Boston, 
+               family = binomial, subset = train)
+summary(glm.fits)
+
+glm.probs = predict(glm.fits, test.X, type = "response")
+glm.pred = rep("Below", dim(test.X)[1])
+glm.pred[glm.probs > .5] = "Above"
+table(glm.pred, test.Y)
+acc_glm[3] = mean(glm.pred == test.Y)
+
+acc_glm
+
+#lda all predictors
+lda.fit = lda(crime ~. -crim - crime, data = Boston, subset = train)
+lda.pred = predict(lda.fit, test.X)
+#names(lda.pred)
+lda.class = lda.pred$class
+table(lda.class, test.Y)
+acc_lda = NULL
+acc_lda[1] = mean(lda.class == test.Y)
+
+#lda predictors are nox, rad, ptratio, dis, medv
+lda.fit = lda(crime ~ nox + rad + ptratio + dis + medv, data = Boston, subset = train)
+lda.pred = predict(lda.fit, test.X)
+lda.class = lda.pred$class
+table(lda.class, test.Y)
+acc_lda[2] = mean(lda.class == test.Y)
+
+#lda predictors are nox, rad, ptratio
+lda.fit = lda(crime ~ nox + rad + ptratio, data = Boston, subset = train)
+lda.pred = predict(lda.fit, test.X)
+lda.class = lda.pred$class
+table(lda.class, test.Y)
+acc_lda[3] = mean(lda.class == test.Y)
+
+acc_lda
+
+#knn all predictors
+train.X = cbind(zn, indus, chas, nox, rm, age, dis, rad, tax, ptratio, black, 
+                lstat, medv)[train,]
+test.X = cbind(zn, indus, chas, nox, rm, age, dis, rad, tax, ptratio, black, 
+               lstat, medv)[test,]
+train.Y = crime[train]
+test.Y = crime[test]
+
+knn_pred = NULL
+results = data.frame(k=1:dim(test.X)[1], acc=NA)
+for(i in 1:dim(test.X)[1]){
+  set.seed(1)
+  knn.pred = knn(data.frame(train.X), data.frame(test.X), train.Y, k=i)
+  results$acc[i] = mean(knn.pred == test.Y)
+}
+plot(x=results$k, y=results$acc, type="l", xlab="K", ylab="Accuracy")
+
+### find the maximum accuracy
+max.accuracy = NULL
+max.accuracy[1] = max(results$acc)
+print(max.accuracy[1])
+
+### get the index of that accuracy, which is the k
+K = NULL
+K[1] = which(results$acc == max.accuracy[1])
+print(K[1])
+
+min.accuracy = min(results$acc)
+print(min.accuracy)
+
+#knn predictors are nox, rad, ptratio, medv,dis
+library(class)
+train.X = cbind(nox, rad, ptratio, medv, dis)[train,]
+test.X = cbind(nox, rad, ptratio, medv, dis)[test,]
+train.Y = crime[train]
+test.Y = crime[test]
+
+knn_pred = NULL
+results = data.frame(k=1:dim(test.X)[1], acc=NA)
+for(i in 1:dim(test.X)[1]){
+  set.seed(1)
+  knn.pred = knn(data.frame(train.X), data.frame(test.X), train.Y, k=i)
+  results$acc[i] = mean(knn.pred == test.Y)
+}
+plot(x=results$k, y=results$acc, type="l", xlab="K", ylab="Accuracy")
+
+### find the maximum accuracy
+max.accuracy[2] = max(results$acc)
+print(max.accuracy[2])
+
+### get the index of that accuracy, which is the k
+K[2] = which(results$acc == max.accuracy[2])
+print(K[2])
+
+
+#knn predictors are nox, rad, ptratio
+
+train.X = cbind(nox, rad, ptratio)[train,]
+test.X = cbind(nox, rad, ptratio)[test,]
+train.Y = crime[train]
+test.Y = crime[test]
+
+knn_pred = NULL
+results = data.frame(k=1:dim(test.X)[1], acc=NA)
+for(i in 1:dim(test.X)[1]){
+  set.seed(1)
+  knn.pred = knn(data.frame(train.X), data.frame(test.X), train.Y, k=i)
+  results$acc[i] = mean(knn.pred == test.Y)
+}
+plot(x=results$k, y=results$acc, type="l", xlab="K", ylab="Accuracy")
+#error_rate
+
+### find the maximum accuracy
+max.accuracy[3] = max(results$acc)
+print(max.accuracy[3])
+
+### get the index of that accuracy, which is the k
+K[3] = which(results$acc == max.accuracy[3])
+print(K[3])
+
+acc_table = data.frame(acc_glm,acc_lda, max.accuracy, K)
+colnames(acc_table) = c("acc_glm", "acc_lda", "acc_knn", "K")
+rownames(acc_table) = c("(a)", "(b)" , "(c)")
+acc_table
+print(acc_table, digits = 3)
+print(xtable(acc_table, digits = 3), type="latex")
