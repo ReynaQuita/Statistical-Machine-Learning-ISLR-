@@ -4,9 +4,10 @@ library(MASS)
 attach(Boston)
 
 
-crime = rep("Below", length(crim))
-crime[crim > median(crim)] = "Above"
+crime = rep(0, length(crim))
+crime[crim > median(crim)] = 1
 Boston = data.frame(Boston, crime)
+fix(Boston)
 
 train = 1:(dim(Boston)[1]*(0.75))
 test = (dim(Boston)[1]*(0.75) + 1):dim(Boston)[1]
@@ -21,8 +22,8 @@ glm.fits = glm(crime ~. -crim - crime, data = Boston, family = binomial, subset 
 summary(glm.fits)
 
 glm.probs = predict(glm.fits, test.X, type = "response")
-glm.pred = rep("Below", dim(test.X)[1])
-glm.pred[glm.probs > .5] = "Above"
+glm.pred = rep(0, dim(test.X)[1])
+glm.pred[glm.probs > .5] = 1
 table(glm.pred, test.Y)
 acc_glm = NULL
 acc_glm[1] = mean(glm.pred == test.Y)
@@ -33,8 +34,8 @@ glm.fits = glm(crime ~ nox + rad + ptratio + dis + medv, data = Boston,
 summary(glm.fits)
 
 glm.probs = predict(glm.fits, test.X, type = "response")
-glm.pred = rep("Below", dim(test.X)[1])
-glm.pred[glm.probs > .5] = "Above"
+glm.pred = rep(0, dim(test.X)[1])
+glm.pred[glm.probs > .5] = 1
 table(glm.pred, test.Y)
 acc_glm[2] = mean(glm.pred == test.Y)
 
@@ -45,10 +46,16 @@ glm.fits = glm(crime ~ nox + rad + ptratio, data = Boston,
 summary(glm.fits)
 
 glm.probs = predict(glm.fits, test.X, type = "response")
-glm.pred = rep("Below", dim(test.X)[1])
-glm.pred[glm.probs > .5] = "Above"
+glm.pred = rep(0, dim(test.X)[1])
+glm.pred[glm.probs > .5] = 1
 table(glm.pred, test.Y)
 acc_glm[3] = mean(glm.pred == test.Y)
+
+roc(test.Y, glm.probs)
+plot(roc(test.Y, glm.probs),
+     print.thres = T,
+     print.auc=T, print.auc.y = 0.4, xlab = "False Positive Rate",
+     ylab = "True Positive Rate")
 
 acc_glm
 
@@ -64,6 +71,7 @@ acc_lda[1] = mean(lda.class == test.Y)
 #lda predictors are nox, rad, ptratio, dis, medv
 lda.fit = lda(crime ~ nox + rad + ptratio + dis + medv, data = Boston, subset = train)
 lda.pred = predict(lda.fit, test.X)
+#names(lda.pred)
 lda.class = lda.pred$class
 table(lda.class, test.Y)
 acc_lda[2] = mean(lda.class == test.Y)
@@ -74,6 +82,12 @@ lda.pred = predict(lda.fit, test.X)
 lda.class = lda.pred$class
 table(lda.class, test.Y)
 acc_lda[3] = mean(lda.class == test.Y)
+
+roc(test.Y, lda.pred$posterior[,2])
+plot(roc(test.Y, lda.pred$posterior[,2]),
+     print.thres = T,
+     print.auc=T, print.auc.y = 0.4, xlab = "False Positive Rate",
+     ylab = "True Positive Rate")
 
 acc_lda
 
@@ -101,6 +115,7 @@ print(max.accuracy[1])
 
 ### get the index of that accuracy, which is the k
 K = NULL
+which(results$acc == max.accuracy[1])
 K[1] = which(results$acc == max.accuracy[1])
 print(K[1])
 
@@ -122,6 +137,7 @@ for(i in 1:dim(test.X)[1]){
   results$acc[i] = mean(knn.pred == test.Y)
 }
 plot(x=results$k, y=results$acc, type="l", xlab="K", ylab="Accuracy")
+#error_rate
 
 ### find the maximum accuracy
 max.accuracy[2] = max(results$acc)
@@ -130,7 +146,7 @@ print(max.accuracy[2])
 ### get the index of that accuracy, which is the k
 K[2] = which(results$acc == max.accuracy[2])
 print(K[2])
-
+which(results$acc == max.accuracy[2])
 
 #knn predictors are nox, rad, ptratio
 
@@ -147,7 +163,6 @@ for(i in 1:dim(test.X)[1]){
   results$acc[i] = mean(knn.pred == test.Y)
 }
 plot(x=results$k, y=results$acc, type="l", xlab="K", ylab="Accuracy")
-#error_rate
 
 ### find the maximum accuracy
 max.accuracy[3] = max(results$acc)
@@ -156,10 +171,45 @@ print(max.accuracy[3])
 ### get the index of that accuracy, which is the k
 K[3] = which(results$acc == max.accuracy[3])
 print(K[3])
+which(results$acc == max.accuracy[3])
+
+K
+max.accuracy
+
+results_AUC = data.frame(k=1:dim(test.X)[1], auc=NA)
+for(i in 1:dim(test.X)[1]){
+  set.seed(1)
+  mod = class::knn(cl = train.Y,
+                   test = test.X,
+                   train = train.X,
+                   k = i,
+                   prob = TRUE)
+  proc = roc(test.Y, attributes(mod)$prob)
+  results_AUC$auc[i] = proc$auc
+  }
+
+### find the maximum AUC
+max.auc = max(results_AUC$auc)
+print(max.auc)
+### get the index of that AUC, which is the k
+K_auc = which(results_AUC$auc == max.auc)
+print(K_auc)
+
+mod = class::knn(cl = train.Y,
+                 test = test.X,
+                 train = train.X,
+                 k = 30,
+                 prob = TRUE)
+
+roc(test.Y, attributes(mod)$prob)
+plot(roc(test.Y, attributes(mod)$prob),
+     print.thres = T,
+     print.auc=T, xlab = "False Positive Rate",
+     ylab = "True Positive Rate")
 
 acc_table = data.frame(acc_glm,acc_lda, max.accuracy, K)
 colnames(acc_table) = c("acc_glm", "acc_lda", "acc_knn", "K")
-rownames(acc_table) = c("(a)", "(b)" , "(c)")
+rownames(acc_table) = c("a.", "b." , "c.")
 acc_table
 print(acc_table, digits = 3)
 print(xtable(acc_table, digits = 3), type="latex")
