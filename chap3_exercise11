@@ -1,0 +1,37 @@
+set.seed(1)
+x = rnorm(100)
+y = 2*x + rnorm(100)
+
+###########################11a########################
+
+lm.fit1 = lm(y ~ x+0)
+summary(lm.fit1)
+
+###########################11b########################
+
+lm.fit2 = lm(x ~ y+0)
+summary(lm.fit2)
+
+###########################11d########################
+
+T_statistic = (sqrt(length(x) - 1) * sum(x*y)) / sqrt(sum(x^2) * sum(y^2) - sum(x*y)^2)
+T_statistic
+
+round(as.numeric(T_statistic), 10) == 
+  round(as.numeric(summary(lm.fit1)$coefficients[3]), 10)
+
+###########################11e########################
+
+round(as.numeric(summary(lm.fit1)$coefficients[3]), 10) == 
+  round(as.numeric(summary(lm.fit2)$coefficients[3]), 10)
+
+###########################11f########################
+
+lm.fit3 = lm(y ~ x)
+summary(lm.fit3)
+
+lm.fit4 = lm(x ~ y)
+summary(lm.fit4)
+
+round(summary(lm.fit3)$coefficients[2, 3], 10) == 
+  round(summary(lm.fit4)$coefficients[2, 3], 10)
