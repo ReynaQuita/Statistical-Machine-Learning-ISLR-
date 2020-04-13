@@ -1,0 +1,39 @@
+library(ISLR)
+
+?Auto
+attach(Auto)
+
+####################9a##########################
+
+pairs(Auto)
+
+#################9b###########################
+
+correl = round(cor(Auto[ ,-9]),3)
+#Hide lower triangle of correlation matrix
+lower<-correl
+lower[lower.tri(correl, diag=TRUE)]<-""
+lower<-as.data.frame(lower)
+lower
+
+#################9c###########################
+
+lm.fit = lm(mpg ~ . -name, data = Auto)
+summary(lm.fit)
+
+#################9d###########################
+# to check outliers
+plot(predict(lm.fit), rstudent(lm.fit))
+
+#to check leverage
+plot(hatvalues(lm.fit))
+which.max(hatvalues(lm.fit))
+
+#################9e###########################
+Auto$origin = factor(Auto$origin, labels = c("American", "European", "Japanese"))
+summary(lm(formula = mpg ~ . * ., data = Auto[, -9]))
+
+#################9f###########################
+
+lm.fit3 = lm(mpg~log(weight)+sqrt(horsepower)+acceleration+I(acceleration^2))
+summary(lm.fit3)
