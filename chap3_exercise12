@@ -1,0 +1,64 @@
+###############13a#################
+
+x = rnorm(100)
+
+###############13b#################
+
+eps = rnorm(100, 0, sqrt(0.25))
+
+###############13c#################
+
+y = -1 + 0.5 * x + eps
+
+length(y)
+
+###############13d#################
+
+plot(x,y)
+
+###############13e#################
+
+lm.fit = lm(y~x)
+summary(lm.fit)
+
+###############13f#################
+
+plot(x,y)
+abline(lm.fit, col=2, lwd = 3)
+abline(-1, 0.5, lwd=3, col=3)
+legend(-1, legend = c("model fit", "pop. reg"), col=2:3, lwd=3)
+
+###############13g#################
+
+lm.fit1 = lm(y~ x + I(x^2))
+summary(lm.fit1)
+
+###############13h#################
+
+eps1 = rnorm(100, 0, sqrt(0.125))
+y1 = -1 + 0.5 * x + eps1
+lm.fit2 = lm(y1~x)
+summary(lm.fit2)
+
+plot(x,y1)
+abline(lm.fit2, col=2, lwd = 3)
+abline(-1, 0.5, lwd=3, col=3)
+legend(-1, legend = c("model fit", "pop. reg"), col=2:3, lwd=3)
+
+###############13i#################
+
+eps2 = rnorm(100, 0, sqrt(0.5))
+y2 = -1 + 0.5 * x + eps2
+lm.fit3 = lm(y2~x)
+summary(lm.fit3)
+
+plot(x,y2)
+abline(lm.fit3, col=2, lwd = 3)
+abline(-1, 0.5, lwd=3, col=3)
+legend(-1, legend = c("model fit", "pop. reg"), col=2:3, lwd=3)
+
+###############13j#################
+
+confint(lm.fit)
+confint(lm.fit2)
+confint(lm.fit3)
