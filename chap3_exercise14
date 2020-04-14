@@ -1,0 +1,46 @@
+#################14a################
+
+set.seed(1)
+x1 = runif(100)
+x2 = 0.5*x1 + rnorm(100)/10
+y = 2 + 2*x1 + 0.3*x2 + rnorm(100)
+
+#################14b################
+
+cor(x1,x2)
+plot(x1, x2)
+
+#################14c################
+
+lm.fit = lm(y ~ x1 + x2)
+summary(lm.fit)
+
+#################14d################
+lm.fit1 = lm(y ~ x1)
+summary(lm.fit1)
+
+#################14e################
+lm.fit2 = lm(y ~ x2)
+summary(lm.fit2)
+
+#################14g################
+x1 = c(x1, 0.1)
+x2 = c(x2, 0.8)
+y = c(y,6)
+
+lm.fit3 = lm(y ~ x1 + x2)
+summary(lm.fit3)
+
+lm.fit4 = lm(y ~ x1)
+summary(lm.fit4)
+
+lm.fit5 = lm(y ~ x2)
+summary(lm.fit5)
+
+plot(predict(lm.fit3), rstudent(lm.fit3))
+plot(predict(lm.fit4), rstudent(lm.fit4))
+plot(predict(lm.fit5), rstudent(lm.fit5))
+
+plot(hatvalues(lm.fit3))
+plot(hatvalues(lm.fit4))
+plot(hatvalues(lm.fit5))
