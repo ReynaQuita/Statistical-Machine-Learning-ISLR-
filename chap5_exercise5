@@ -1,0 +1,82 @@
+library(ISLR)
+
+?Default
+fix(Default)
+attach(Default)
+
+#####################5a###############################
+
+glm.fits = glm(default ~ income + balance, data = Default, family = binomial)
+summary(glm.fits)
+
+#####################5b###############################
+
+#i
+set.seed(1)
+train = sample(10000,5000)
+
+#ii
+glm.fits = glm(default ~ income + balance, data = Default, family = binomial,
+               subset = train)
+summary(glm.fits)
+
+#iii
+glm.probs = predict(glm.fits, type = "response")
+glm.pred = rep("No", 10000)
+glm.pred[glm.probs > 0.5] = "Yes"
+table(glm.pred, default)
+
+#iv
+mean(glm.pred!=default)
+
+#####################5c###############################
+
+set.seed(1)
+train = sample(10000,7000)
+length(train)
+glm.fits = glm(default ~ income + balance, data = Default, family = binomial,
+               subset = train)
+
+glm.probs = predict(glm.fits, type = "response")
+glm.pred = rep("No", 10000)
+glm.pred[glm.probs > 0.5] = "Yes"
+table(glm.pred, default)
+mean(glm.pred!=default)
+
+set.seed(1)
+train = sample(10000,8000)
+length(train)
+glm.fits = glm(default ~ income + balance, data = Default, family = binomial,
+               subset = train)
+
+glm.probs = predict(glm.fits, type = "response")
+glm.pred = rep("No", 10000)
+glm.pred[glm.probs > 0.5] = "Yes"
+table(glm.pred, default)
+mean(glm.pred!=default)
+
+set.seed(1)
+train = sample(10000,9000)
+#length(train)
+glm.fits = glm(default ~ income + balance, data = Default, family = binomial,
+               subset = train)
+summary(glm.fits)
+glm.probs = predict(glm.fits, type = "response")
+glm.pred = rep("No", 10000)
+glm.pred[glm.probs > 0.5] = "Yes"
+table(glm.pred, default)
+mean(glm.pred!=default)
+
+
+#####################5d###############################
+set.seed(1)
+train = sample(10000,9000)
+#length(train)
+glm.fits = glm(default ~ income + balance + student, data = Default, family = binomial,
+               subset = train)
+summary(glm.fits)
+glm.probs = predict(glm.fits, type = "response")
+glm.pred = rep("No", 10000)
+glm.pred[glm.probs > 0.5] = "Yes"
+table(glm.pred, default)
+mean(glm.pred!=default)
