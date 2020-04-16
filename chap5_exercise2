@@ -1,0 +1,25 @@
+
+##############2g###################
+par(mfrow = c(1,1))
+
+results = data.frame(n=1:100000, prob=NA)
+for(i in 1:100000){
+  set.seed(1)
+  results$prob[i] = 1 - (1 - (1/i))^i
+}
+plot(x=results$n, y=results$prob, type="l", xlab="n", ylab="Probability")
+
+results = data.frame(n=1:100, prob=NA)
+for(i in 1:100){
+  set.seed(1)
+  results$prob[i] = 1 - (1 - (1/i))^i
+}
+plot(x=results$n, y=results$prob, type="l", xlab="n", ylab="Probability")
+
+##############2h###################
+
+store = rep(NA, 10000)
+for (i in 1:10000) {
+  store[i] = sum(sample(1:100, rep = TRUE) == 4) >0
+}
+mean(store)
