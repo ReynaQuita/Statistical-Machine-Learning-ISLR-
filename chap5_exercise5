@@ -14,6 +14,7 @@ summary(glm.fits)
 #i
 set.seed(1)
 train = sample(10000,5000)
+test = Default[-train,]
 
 #ii
 glm.fits = glm(default ~ income + balance, data = Default, family = binomial,
@@ -21,62 +22,46 @@ glm.fits = glm(default ~ income + balance, data = Default, family = binomial,
 summary(glm.fits)
 
 #iii
-glm.probs = predict(glm.fits, type = "response")
-glm.pred = rep("No", 10000)
+glm.probs = predict(glm.fits, test, type = "response")
+glm.pred = rep("No", 5000)
 glm.pred[glm.probs > 0.5] = "Yes"
-table(glm.pred, default)
+table(glm.pred, test$default)
 
 #iv
-mean(glm.pred!=default)
+mean(glm.pred!=test$default)
 
 #####################5c###############################
-
-set.seed(1)
-train = sample(10000,7000)
-length(train)
-glm.fits = glm(default ~ income + balance, data = Default, family = binomial,
-               subset = train)
-
-glm.probs = predict(glm.fits, type = "response")
-glm.pred = rep("No", 10000)
-glm.pred[glm.probs > 0.5] = "Yes"
-table(glm.pred, default)
-mean(glm.pred!=default)
-
-set.seed(1)
-train = sample(10000,8000)
-length(train)
-glm.fits = glm(default ~ income + balance, data = Default, family = binomial,
-               subset = train)
-
-glm.probs = predict(glm.fits, type = "response")
-glm.pred = rep("No", 10000)
-glm.pred[glm.probs > 0.5] = "Yes"
-table(glm.pred, default)
-mean(glm.pred!=default)
-
-set.seed(1)
-train = sample(10000,9000)
-#length(train)
-glm.fits = glm(default ~ income + balance, data = Default, family = binomial,
-               subset = train)
-summary(glm.fits)
-glm.probs = predict(glm.fits, type = "response")
-glm.pred = rep("No", 10000)
-glm.pred[glm.probs > 0.5] = "Yes"
-table(glm.pred, default)
-mean(glm.pred!=default)
-
+tr = c(5000, 6000, 7000, 8000, 9000)
+tr[3]
+results = data.frame(tr, error_test=NA)
+for (i in 1:5) {
+  set.seed(1)
+  train = sample(10000,tr[i])
+  test = Default[-train,]
+  glm.fits = glm(default ~ income + balance, data = Default, family = binomial,
+                 subset = train)
+  glm.probs = predict(glm.fits, test, type = "response")
+  glm.pred = rep("No", dim(test)[1])
+  glm.pred[glm.probs > 0.5] = "Yes"
+  #table(glm.pred, test$default)
+  results$error_test[i] = mean(glm.pred!=test$default)
+}
+results
 
 #####################5d###############################
-set.seed(1)
-train = sample(10000,9000)
-#length(train)
-glm.fits = glm(default ~ income + balance + student, data = Default, family = binomial,
-               subset = train)
-summary(glm.fits)
-glm.probs = predict(glm.fits, type = "response")
-glm.pred = rep("No", 10000)
-glm.pred[glm.probs > 0.5] = "Yes"
-table(glm.pred, default)
-mean(glm.pred!=default)
+
+tr = c(5000, 6000, 7000, 8000, 9000)
+error_test = NULL
+results = data.frame(tr, error_test=NA)
+for (i in 1:5) {
+  set.seed(1)
+  train = sample(10000,tr[i])
+  test = Default[-train,]
+  glm.fits = glm(default ~ income + balance + student, data = Default, family = binomial,
+                 subset = train)
+  glm.probs = predict(glm.fits, test, type = "response")
+  glm.pred = rep("No", dim(test)[1])
+  glm.pred[glm.probs > 0.5] = "Yes"
+  results$error_test[i] = mean(glm.pred!=test$default)
+}
+results
