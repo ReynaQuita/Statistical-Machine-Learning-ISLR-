@@ -1,0 +1,53 @@
+library(ISLR)
+library(MASS)
+library(boot)
+
+?Boston
+fix(Boston)
+attach(Boston)
+
+########################9a###########################
+
+mu.hat = mean(medv)
+mu.hat
+
+########################9b###########################
+
+SE.mu.hat = sd(medv)/(sqrt(length(medv)))
+SE.mu.hat
+
+########################9c###########################
+
+boot.fn = function(data, index) return(mean(data[index]))
+bootstrap = boot(medv, boot.fn, 1000)
+bootstrap
+
+########################9d###########################
+bootstrap$t0
+
+boot_results_SE = sd(bootstrap$t)
+boot_results_SE
+
+c(bootstrap$t0 - 2 * boot_results_SE, bootstrap$t0 + 2 * boot_results_SE)
+
+
+ttest.medv = t.test(medv)
+ttest.medv$conf.int
+
+########################9e###########################
+
+median(medv)
+
+########################9f###########################
+
+boot.fn = function(data, index) return(median(data[index]))
+boot(medv, boot.fn, 1000)
+
+########################9g###########################
+
+quantile(medv, c(0.1))
+
+########################9h###########################
+
+boot.fn = function(data, index) return(quantile(data[index], c(0.1)))
+boot(medv, boot.fn, 1000)
