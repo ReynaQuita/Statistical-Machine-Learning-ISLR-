@@ -1,0 +1,75 @@
+###################8a#########################
+
+set.seed(1)
+x = rnorm(100)
+y = x - 2*x^2 + rnorm(100)
+
+###################8b#########################
+
+plot(x,y)
+
+###################8c#########################
+Data = data.frame(x, y)
+cv.error = NULL
+for (i in 1:4) {
+  set.seed(1)
+  glm.fits  = glm(y ~ poly(x,i))
+  cv.error[i] = cv.glm(Data, glm.fits)$delta[1]
+}
+cv.error
+
+###################8d#########################
+Data = data.frame(x, y)
+cv.error = NULL
+for (i in 1:4) {
+  set.seed(2)
+  glm.fits  = glm(y ~ poly(x,i))
+  cv.error[i] = cv.glm(Data, glm.fits)$delta[1]
+}
+cv.error
+
+###################8e#########################
+#results = data.frame(matrix(NA, nrow = 4, ncol = 5))
+#results
+results = NULL
+results = data.frame(matrix(NA, nrow = 4),pvalue_intercept = NA, pvalue_poly1 = NA, 
+                     pvalue_poly2 = NA, pvalue_poly3 = NA, pvalue_poly4 = NA)
+
+results
+
+glm.fits  = glm(y ~ poly(x,1))
+sum_glm = summary(glm.fits)
+sum_glm$coefficients[,4]
+results$pvalue_intercept[1] = sum_glm$coefficients[1,4]
+results$pvalue_poly1[1] = sum_glm$coefficients[2,4]
+results
+
+glm.fits  = glm(y ~ poly(x,2))
+sum_glm = summary(glm.fits)
+sum_glm$coefficients[,4]
+results$pvalue_intercept[2] = sum_glm$coefficients[1,4]
+results$pvalue_poly1[2] = sum_glm$coefficients[2,4]
+results$pvalue_poly2[2] = sum_glm$coefficients[3,4]
+results
+
+glm.fits  = glm(y ~ poly(x,3))
+sum_glm = summary(glm.fits)
+sum_glm$coefficients[,4]
+results$pvalue_intercept[3] = sum_glm$coefficients[1,4]
+results$pvalue_poly1[3] = sum_glm$coefficients[2,4]
+results$pvalue_poly2[3] = sum_glm$coefficients[3,4]
+results$pvalue_poly3[3] = sum_glm$coefficients[4,4]
+results
+
+glm.fits  = glm(y ~ poly(x,4))
+sum_glm = summary(glm.fits)
+sum_glm$coefficients[,4]
+results$pvalue_intercept[4] = sum_glm$coefficients[1,4]
+results$pvalue_poly1[4] = sum_glm$coefficients[2,4]
+results$pvalue_poly2[4] = sum_glm$coefficients[3,4]
+results$pvalue_poly3[4] = sum_glm$coefficients[4,4]
+results$pvalue_poly4[4] = sum_glm$coefficients[5,4]
+results
+
+rownames(results) = c("Poly1", "Poly2", "Poly3", "Poly4")
+results[,-1]
