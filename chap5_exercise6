@@ -1,0 +1,25 @@
+library(ISLR)
+library(boot)
+
+?Default
+fix(Default)
+attach(Default)
+
+#######################6a###########################
+glm.fits = glm(default ~ income + balance, data = Default, family = binomial)
+sum_glm = summary(glm.fits)
+
+sum_glm$coefficients[,2]
+
+#######################6b###########################
+
+boot.fn = function(data, index){
+  return(coef(glm(default ~ income + balance, data = data, 
+                  family = binomial, subset = index)))
+}
+
+#######################6c###########################
+
+#boot.fn(Default, 1:10000)
+boot(Default, boot.fn,1000)
+boot(Default, boot.fn,2000)
