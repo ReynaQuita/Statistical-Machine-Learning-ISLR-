@@ -1,0 +1,38 @@
+library(ISLR)
+library(boot)
+?Weekly
+fix(Weekly)
+attach(Weekly)
+
+
+#####################7a#############################
+
+glm.fits = glm(Direction ~ Lag1 + Lag2, data = Weekly, family = binomial)
+summary(glm.fits)
+
+#####################7b#############################
+
+glm.fits = glm(Direction ~ Lag1 + Lag2, data = Weekly[-1,], family = binomial)
+summary(glm.fits)
+
+#####################7c#############################
+
+glm.probs = predict(glm.fits, Weekly[1,], type = "response")
+glm.pred = rep("Down", 1)
+glm.pred[glm.probs > 0.5] = "Up"
+glm.pred
+
+#####################7d#############################
+error_test = NULL
+for (i in 1: dim(Weekly)[1]) {
+  glm.fits = glm(Direction ~ Lag1 + Lag2, data = Weekly[-i,], family = binomial)
+  glm.probs = predict(glm.fits, Weekly[i,], type = "response")
+  if (glm.probs > 0.5){glm.pred = "Up"} else {glm.pred = "Down"}
+  error_test[i] = mean(glm.pred!=Direction[i])
+}
+error_test
+sum(error_test == 1)
+
+#####################7e#############################
+
+sum(error_test == 1)/dim(Weekly)[1]
