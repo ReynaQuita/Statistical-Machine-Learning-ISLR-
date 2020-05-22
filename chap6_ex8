@@ -1,0 +1,235 @@
+library(ISLR)
+library(leaps)
+library(glmnet)
+
+########################8a#########################
+
+set.seed(1)
+X = rnorm(100)
+eps = rnorm(100)
+
+#######################8b##########################
+beta0 = runif(1, -10,10); beta0
+beta1 = runif(1, -10,10); beta1
+beta2 = runif(1, -10,10); beta2
+beta3 = runif(1, -10,10); beta3
+
+Y = beta0 + beta1 * X + beta2 * X^2 + beta3 * X^3 + eps
+
+#####################8c############################
+
+datafull = data.frame(x = X, y = Y)
+regfitfull = regsubsets(y ~ poly(x,10, raw = T), data = datafull, nvmax = 10)
+sum_regfitfull = summary(regfitfull); sum_regfitfull
+
+#adjr2
+
+sum_regfitfull$adjr2
+max(sum_regfitfull$adjr2)
+which.max(sum_regfitfull$adjr2)
+
+plot(sum_regfitfull$adjr2, xlab = "Number of Variables", ylab = "adjr2", type = "l")
+points(which.max(sum_regfitfull$adjr2), sum_regfitfull$adjr2[which.max(sum_regfitfull$adjr2)],
+       col="red", cex=2, pch=20)
+
+plot(regfitfull, scale = "adjr2")
+
+coefficients(regfitfull, id = which.max(sum_regfitfull$adjr2))
+
+#cp
+
+sum_regfitfull$cp
+min(sum_regfitfull$cp)
+which.min(sum_regfitfull$cp)
+
+plot(sum_regfitfull$cp, xlab = "Number of Variables", ylab = "cp", type = "l")
+points(which.min(sum_regfitfull$cp), sum_regfitfull$cp[which.min(sum_regfitfull$cp)],
+       col="red", cex=2, pch=20)
+
+plot(regfitfull, scale = "Cp")
+
+coefficients(regfitfull, id = which.min(sum_regfitfull$cp))
+
+#bic
+
+sum_regfitfull$bic
+min(sum_regfitfull$bic)
+which.min(sum_regfitfull$bic)
+
+plot(sum_regfitfull$bic, xlab = "Number of Variables", ylab = "bic", type = "l")
+points(which.min(sum_regfitfull$bic), sum_regfitfull$bic[which.min(sum_regfitfull$bic)],
+       col="red", cex=2, pch=20)
+
+plot(regfitfull, scale = "bic")
+
+coefficients(regfitfull, id = which.min(sum_regfitfull$bic))
+
+#####################8d############################
+
+#forward
+regfitfull_fw = regsubsets(y ~ poly(x,10, raw = T), data = datafull, 
+                           nvmax = 10, method = "forward")
+sum_regfitfull_fw = summary(regfitfull_fw); sum_regfitfull_fw
+
+#adjr2_fw
+
+sum_regfitfull_fw$adjr2
+max(sum_regfitfull_fw$adjr2)
+which.max(sum_regfitfull_fw$adjr2)
+
+plot(sum_regfitfull_fw$adjr2, xlab = "Number of Variables", ylab = "adjr2", type = "l")
+points(which.max(sum_regfitfull_fw$adjr2), sum_regfitfull_fw$adjr2[which.max(sum_regfitfull_fw$adjr2)],
+       col="red", cex=2, pch=20)
+
+plot(regfitfull_fw, scale = "adjr2")
+
+coefficients(regfitfull_fw, id = which.max(sum_regfitfull_fw$adjr2))
+
+#cp_fw
+
+sum_regfitfull_fw$cp
+min(sum_regfitfull_fw$cp)
+which.min(sum_regfitfull_fw$cp)
+
+plot(sum_regfitfull_fw$cp, xlab = "Number of Variables", ylab = "cp", type = "l")
+points(which.min(sum_regfitfull_fw$cp), sum_regfitfull_fw$cp[which.min(sum_regfitfull_fw$cp)],
+       col="red", cex=2, pch=20)
+
+plot(regfitfull_fw, scale = "Cp")
+
+coefficients(regfitfull_fw, id = which.min(sum_regfitfull_fw$cp))
+
+#bic_fw
+
+sum_regfitfull_fw$bic
+min(sum_regfitfull_fw$bic)
+which.min(sum_regfitfull_fw$bic)
+
+plot(sum_regfitfull_fw$bic, xlab = "Number of Variables", ylab = "bic", type = "l")
+points(which.min(sum_regfitfull_fw$bic), sum_regfitfull_fw$bic[which.min(sum_regfitfull_fw$bic)],
+       col="red", cex=2, pch=20)
+
+plot(regfitfull_fw, scale = "bic")
+
+coefficients(regfitfull_fw, id = which.min(sum_regfitfull_fw$bic))
+
+
+#backward
+regfitfull_bw = regsubsets(y ~ poly(x,10, raw = T), data = datafull, 
+                           nvmax = 10, method = "backward")
+sum_regfitfull_bw = summary(regfitfull_bw); sum_regfitfull_bw
+
+#adjr2_bw
+
+sum_regfitfull_bw$adjr2
+max(sum_regfitfull_bw$adjr2)
+which.max(sum_regfitfull_bw$adjr2)
+
+plot(sum_regfitfull_bw$adjr2, xlab = "Number of Variables", ylab = "adjr2", type = "l")
+points(which.max(sum_regfitfull_bw$adjr2), sum_regfitfull_bw$adjr2[which.max(sum_regfitfull_bw$adjr2)],
+       col="red", cex=2, pch=20)
+
+plot(regfitfull_bw, scale = "adjr2")
+
+coefficients(regfitfull_bw, id = which.max(sum_regfitfull_bw$adjr2))
+
+#cp_bw
+
+sum_regfitfull_bw$cp
+min(sum_regfitfull_bw$cp)
+which.min(sum_regfitfull_bw$cp)
+
+plot(sum_regfitfull_bw$cp, xlab = "Number of Variables", ylab = "cp", type = "l")
+points(which.min(sum_regfitfull_bw$cp), sum_regfitfull_bw$cp[which.min(sum_regfitfull_bw$cp)],
+       col="red", cex=2, pch=20)
+
+plot(regfitfull_bw, scale = "Cp")
+
+coefficients(regfitfull_bw, id = which.min(sum_regfitfull_bw$cp))
+
+#bic_bw
+
+sum_regfitfull_bw$bic
+min(sum_regfitfull_bw$bic)
+which.min(sum_regfitfull_bw$bic)
+
+plot(sum_regfitfull_bw$bic, xlab = "Number of Variables", ylab = "bic", type = "l")
+points(which.min(sum_regfitfull_bw$bic), sum_regfitfull_bw$bic[which.min(sum_regfitfull_bw$bic)],
+       col="red", cex=2, pch=20)
+
+plot(regfitfull_bw, scale = "bic")
+
+coefficients(regfitfull_bw, id = which.min(sum_regfitfull_bw$bic))
+
+###############8e######################
+
+set.seed(1)
+xmat = model.matrix(y ~ poly(x, 10, raw = T), data = datafull)[, -1]
+cv.out = cv.glmnet(xmat,Y, alpha=1)
+best.lambda = cv.out$lambda.min
+best.lambda
+plot(cv.out)
+
+best.model = glmnet(xmat, Y, alpha = 1)
+predict(best.model, s=best.lambda ,type = "coefficients")
+
+##############8f#######################
+beta7 = runif(1, -10,10); beta7
+Y1 = beta0 + beta7 * X^7 + eps
+
+datafull = data.frame(y = Y1, x = X)
+regfitfull = regsubsets(y ~ poly(x,10, raw = T), data = datafull, nvmax = 10)
+sum_regfitfull = summary(regfitfull); sum_regfitfull
+
+#adjr2
+
+sum_regfitfull$adjr2
+max(sum_regfitfull$adjr2)
+which.max(sum_regfitfull$adjr2)
+
+plot(sum_regfitfull$adjr2, xlab = "Number of Variables", ylab = "adjr2", type = "l")
+points(which.max(sum_regfitfull$adjr2), sum_regfitfull$adjr2[which.max(sum_regfitfull$adjr2)],
+       col="red", cex=2, pch=20)
+
+plot(regfitfull, scale = "adjr2")
+
+coefficients(regfitfull, id = which.max(sum_regfitfull$adjr2))
+
+#cp
+
+sum_regfitfull$cp
+min(sum_regfitfull$cp)
+which.min(sum_regfitfull$cp)
+
+plot(sum_regfitfull$cp, xlab = "Number of Variables", ylab = "cp", type = "l")
+points(which.min(sum_regfitfull$cp), sum_regfitfull$cp[which.min(sum_regfitfull$cp)],
+       col="red", cex=2, pch=20)
+
+plot(regfitfull, scale = "Cp")
+
+coefficients(regfitfull, id = which.min(sum_regfitfull$cp))
+
+#bic
+
+sum_regfitfull$bic
+min(sum_regfitfull$bic)
+which.min(sum_regfitfull$bic)
+
+plot(sum_regfitfull$bic, xlab = "Number of Variables", ylab = "bic", type = "l")
+points(which.min(sum_regfitfull$bic), sum_regfitfull$bic[which.min(sum_regfitfull$bic)],
+       col="red", cex=2, pch=20)
+
+plot(regfitfull, scale = "bic")
+
+coefficients(regfitfull, id = which.min(sum_regfitfull$bic))
+
+#lasso
+set.seed(1)
+xmat = model.matrix(y ~ poly(x, 10, raw = T), data = datafull)[, -1]
+cv.out = cv.glmnet(xmat,Y1, alpha=1)
+best.lambda = cv.out$lambda.min
+best.lambda
+plot(cv.out)
+
+best.model = glmnet(xmat, Y1, alpha = 1)
+predict(best.model, s = best.lambda, type = "coefficients")
