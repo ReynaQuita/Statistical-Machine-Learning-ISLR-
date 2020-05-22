@@ -1,0 +1,110 @@
+library(ISLR)
+library(glmnet)
+library(pls)
+library(xtable)
+
+attach(College)
+View(College)
+names(College)
+
+sum(is.na(College))
+dim(College)
+
+#######################9a#######################
+
+train.size = trunc(0.7*dim(College)[1]); train.size
+train = sample(1:dim(College)[1], train.size)
+test = -train
+
+#######################9b#######################
+
+set.seed(1)
+lm.fit = lm(Apps~., data=College, subset = train)
+lm.pred = predict(lm.fit, College[test,])
+test_MSE_lm = mean((College[test,"Apps"] - lm.pred)^2); test_MSE_lm
+
+#######################9c#######################
+x = model.matrix(Apps ~., College)[,-2]
+y = Apps
+
+set.seed(1)
+cv.out = cv.glmnet(x[train,], y[train], alpha=0)
+plot(cv.out)
+lambda.best = cv.out$lambda.min
+lambda.best
+
+ridge.fit = glmnet(x[train,],y[train],alpha = 0)
+plot(ridge.fit,xvar="lambda",label=TRUE)
+ridge.pred = predict(ridge.fit, s=lambda.best, newx = x[test,])
+test_MSE_ridge = mean((College[test,"Apps"] - ridge.pred)^2); test_MSE_ridge
+
+out = glmnet(x,y,alpha = 0)
+predict(out,s = lambda.best, type = "coefficients")
+
+#######################9d#######################
+
+set.seed(1)
+cv.out = cv.glmnet(x[train,], y[train], alpha=1)
+plot(cv.out)
+lambda.best = cv.out$lambda.min
+lambda.best
+
+lasso.fit = glmnet(x[train,],y[train],alpha = 1)
+plot(lasso.fit,xvar="lambda",label=TRUE)
+lasso.pred = predict(lasso.fit, s=lambda.best, newx = x[test,])
+test_MSE_lasso = mean((College[test,"Apps"] - lasso.pred)^2); test_MSE_lasso
+
+out = glmnet(x,y,alpha = 1)
+predict(out, s = lambda.best, type = "coefficients")
+
+#######################9e#######################
+
+set.seed(1)
+pcr.fit = pcr(Apps ~., data= College, subset= train, scale = TRUE, validation = "CV")
+summary(pcr.fit)
+validationplot(pcr.fit, val.type = "MSEP")
+
+pcr.pred = predict(pcr.fit, x[test,], ncomp = 9)
+test_MSE_pcr = mean((College[test,"Apps"] - pcr.pred)^2); test_MSE_pcr
+
+#######################9f#######################
+
+set.seed(1)
+pls.fit = plsr(Apps ~., data = College, subset = train, scale= TRUE,
+               validation = "CV")
+summary(pls.fit)
+validationplot(pls.fit, val.type = "MSEP")
+
+pls.pred = predict(pls.fit, x[test,], ncomp = 8)
+test_MSE_pls = mean((College[test,"Apps"] - pls.pred)^2); test_MSE_pls
+
+#######################9g#######################
+
+test.avg = mean(College[test, "Apps"]); test.avg
+
+test_TSS = sum((College[test, "Apps"] - test.avg)^2); test_TSS
+
+test_RSS_lm = sum((College[test,"Apps"] - lm.pred)^2); test_RSS_lm
+test_RSS_ridge = sum((College[test,"Apps"] - ridge.pred)^2); test_RSS_ridge
+test_RSS_lasso = sum((College[test,"Apps"] - lasso.pred)^2); test_RSS_lasso
+test_RSS_pcr = sum((College[test,"Apps"] - pcr.pred)^2); test_RSS_pcr
+test_RSS_pls = sum((College[test,"Apps"] - pls.pred)^2); test_RSS_pls
+
+
+lm.test.r2 = 1 - (test_RSS_lm /test_TSS); lm.test.r2
+ridge.test.r2 = 1 - (test_RSS_ridge /test_TSS); ridge.test.r2
+lasso.test.r2 = 1 - (test_RSS_lasso /test_TSS); lasso.test.r2
+pcr.test.r2 = 1 - (test_RSS_pcr /test_TSS); pcr.test.r2
+pls.test.r2 = 1 - (test_RSS_pls /test_TSS); pls.test.r2
+barplot(c(lm.test.r2, ridge.test.r2, lasso.test.r2, pcr.test.r2, pls.test.r2), 
+        col="#009999", names.arg=c("LM", "Ridge", "Lasso", "PCR", "PLS"), main="Test R-squared",
+        ylim=c(0.85,0.95), beside=TRUE, xpd = FALSE)
+
+table_MSE_RSS = data.frame("LM"= c(test_MSE_lm, test_RSS_lm, lm.test.r2),
+                           "Ridge" = c(test_MSE_ridge, test_RSS_ridge, ridge.test.r2),
+                           "Lasso" = c(test_MSE_lasso, test_RSS_lasso, lasso.test.r2),
+                           "PCR" = c(test_MSE_pcr, test_RSS_pcr, pcr.test.r2),
+                           "PLS" = c(test_MSE_pls, test_RSS_pls, pls.test.r2))
+row.names(table_MSE_RSS) = c("MSE","RSS","R^2")
+table_MSE_RSS
+print(xtable(table_MSE_RSS), type = "latex")
