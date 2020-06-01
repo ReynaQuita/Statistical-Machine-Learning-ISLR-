@@ -1,0 +1,79 @@
+library(ISLR)
+library(boot)
+
+attach(Wage)
+View(Wage)
+
+#########################6a#########################
+
+set.seed(1)
+deltas = rep(NA, 10)
+for (i in 1:10) {
+  fit = glm(wage ~ poly(age, i, raw = T), data = Wage)
+  deltas[i] = cv.glm(Wage, fit, K = 10)$delta[1]
+}
+
+print(deltas)
+min(deltas)
+which.min(deltas)
+
+plot(1:10, deltas, pch = 19, type = "b", xlab = "degree of polynomial", ylab = "CV estimate of the prediction error")
+grid()
+points(which.min(deltas), min(deltas), col = "red", cex = 2, pch = 20)
+
+fit.1 = lm(wage ~ age, data = Wage)
+fit.2 = lm(wage ~ poly(age,2, raw = T), data = Wage)
+fit.3 = lm(wage ~ poly(age,3, raw = T), data = Wage)
+fit.4 = lm(wage ~ poly(age,4, raw = T), data = Wage)
+fit.5 = lm(wage ~ poly(age,5, raw = T), data = Wage)
+fit.6 = lm(wage ~ poly(age,6, raw = T), data = Wage)
+fit.7 = lm(wage ~ poly(age,7, raw = T), data = Wage)
+fit.8 = lm(wage ~ poly(age,8, raw = T), data = Wage)
+fit.9 = lm(wage ~ poly(age,9, raw = T), data = Wage)
+fit.10 = lm(wage ~ poly(age,10, raw = T), data = Wage)
+
+anova(fit.1, fit.2, fit.3, fit.4, fit.5, fit.6, fit.7, fit.8, fit.9,
+      fit.10)
+
+fit = lm(wage ~ poly(age,9, raw = T), data = Wage)
+agelims = range(age)
+age.grid = seq(from= agelims[1], to = agelims[2])
+preds = predict(fit, newdata = list(age = age.grid), se= TRUE)
+se.bands = cbind(preds$fit + 2*preds$se.fit, preds$fit - 2*preds$se.fit)
+
+plot(age,wage, xlim = agelims, cex=.5, col="darkgrey")
+title("Degree-9 Polynomial")
+lines(age.grid, preds$fit, lwd=2, col = "blue")
+matlines(age.grid, se.bands, lwd=1, col = "blue", lty=3)
+
+
+#########################6b#########################
+
+set.seed(100)
+deltas = NULL
+for(i in 2:21){
+  Wage.model=model.frame(wage~cut(age,i),data=Wage)
+  names(Wage.model)=c('wage','age')
+  
+  fit=glm(wage~age,data=Wage.model)
+  deltas[i-1]=cv.glm(fit,data = Wage.model,K=10)$delta[1]
+}
+
+print(deltas)
+min(deltas)
+which.min(deltas)
+
+plot(1:20, deltas, pch = 19, type = "b", xlab = "number of cuts", ylab = "CV estimate of the prediction error")
+grid()
+points(which.min(deltas), min(deltas), col = "red", cex = 2, pch = 20)
+
+fit = lm(wage ~ cut(age,which.min(deltas)), data = Wage)
+agelims = range(age)
+age.grid = seq(from= agelims[1], to = agelims[2])
+preds = predict(fit, newdata = list(age = age.grid), se= TRUE)
+se.bands = cbind(preds$fit + 2*preds$se.fit, preds$fit - 2*preds$se.fit)
+
+plot(age,wage, xlim = agelims, cex=.5, col="darkgrey")
+title("10 Number of Cuts")
+lines(age.grid, preds$fit, lwd=2, col = "blue")
+matlines(age.grid, se.bands, lwd=1, col = "blue", lty=3)
